@@ -9,6 +9,8 @@ func _capture() -> void:
 	var scene = MainScene.instantiate()
 	root.add_child(scene)
 	scene._new_run()
+	for ghost in scene.ghosts:
+		ghost["respawn"] = 0.0
 	for i in 12:
 		await process_frame
 	var image := root.get_texture().get_image()

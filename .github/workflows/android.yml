@@ -91,7 +91,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.1.0-m1 build/PacLite-debug.apk \
-            --draft \
-            --title "PacLite milestone 1" \
-            --notes "Personal Android test build: one generated maze, four ghosts, touch steering, pellets, power mode, damage, fruit, exit, and save/resume. This is a private draft release, not a public distribution."
+          if gh release view v0.1.0-m1 >/dev/null 2>&1; then
+            gh release upload v0.1.0-m1 build/PacLite-debug.apk --clobber
+          else
+            gh release create v0.1.0-m1 build/PacLite-debug.apk \
+              --draft \
+              --title "PacLite milestone 1" \
+              --notes "Personal Android test build: one generated maze, four ghosts, touch steering, pellets, power mode, damage, fruit, exit, and save/resume. This is a private draft release, not a public distribution."
+          fi

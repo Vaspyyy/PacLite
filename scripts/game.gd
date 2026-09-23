@@ -115,7 +115,7 @@ func _new_run() -> void:
 		ghost["kind"] = i
 		ghost["respawn"] = 0.4 + 0.45 * i
 		ghosts.append(ghost)
-	camera_point = _tile_pos(MazeData.START)
+	camera_point = _clamp_camera(_tile_pos(MazeData.START))
 	screen = Screen.PLAY
 	_save_run()
 
@@ -155,7 +155,7 @@ func _physics_process(delta: float) -> void:
 			_move_ghost(ghost, delta)
 	_check_collisions()
 	var focus := _tile_pos_vec(_entity_pos(player)) + Vector2(float(player["dir"].x), float(player["dir"].y)) * TILE * 2.3
-	camera_point = camera_point.lerp(focus, minf(1.0, delta * 5.5))
+	camera_point = camera_point.lerp(_clamp_camera(focus), minf(1.0, delta * 5.5))
 
 func _move_player(delta: float) -> void:
 	var remaining := PLAYER_SPEED * delta
@@ -390,7 +390,7 @@ func _load_run() -> void:
 	var fruit: Array = parsed.get("fruit", [-1, -1])
 	fruit_tile = Vector2i(int(fruit[0]), int(fruit[1]))
 	fruit_taken = bool(parsed.get("fruit_taken", false))
-	camera_point = _tile_pos_vec(_entity_pos(player))
+	camera_point = _clamp_camera(_tile_pos_vec(_entity_pos(player)))
 	screen = Screen.PLAY
 
 func _clear_run_save() -> void:
@@ -489,6 +489,14 @@ func _tile_pos_vec(tile: Vector2) -> Vector2:
 func _world_to_screen(world: Vector2) -> Vector2:
 	var size := get_viewport_rect().size
 	return world - camera_point + Vector2(size.x * 0.5, size.y * 0.53) + Vector2(sin(animation_time * 69.0), cos(animation_time * 55.0)) * shake
+
+func _clamp_camera(point: Vector2) -> Vector2:
+	var size := get_viewport_rect().size
+	var center := Vector2(size.x * 0.5, size.y * 0.53)
+	var world := Vector2(MazeData.WIDTH, MazeData.HEIGHT) * TILE
+	var min_camera := center - Vector2(0.0, 81.0)
+	var max_camera := world + center - size
+	return Vector2(clampf(point.x, min_camera.x, maxf(min_camera.x, max_camera.x)), clampf(point.y, min_camera.y, maxf(min_camera.y, max_camera.y)))
 
 func _draw() -> void:
 	var size := get_viewport_rect().size
