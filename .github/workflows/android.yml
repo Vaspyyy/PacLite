@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -32,6 +32,16 @@ jobs:
           godot --headless --editor --path . --import --quit
           godot --headless --path . --script res://tests/maze_check.gd
           godot --headless --path . --quit-after 90
+      - name: Capture rendered gameplay frame
+        run: |
+          mkdir -p build
+          xvfb-run -a godot --path . --script res://tests/capture.gd
+      - name: Upload visual check
+        uses: actions/upload-artifact@v4
+        with:
+          name: PacLite-visual-${{ github.sha }}
+          path: build/first-floor.png
+          if-no-files-found: error
       - name: Use Java 17
         uses: actions/setup-java@v4
         with:
@@ -76,3 +86,12 @@ jobs:
           name: PacLite-debug-${{ github.sha }}
           path: build/PacLite-debug.apk
           if-no-files-found: error
+      - name: Create owner-visible draft release
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[draft-release]')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.0-m1 build/PacLite-debug.apk \
+            --draft \
+            --title "PacLite milestone 1" \
+            --notes "Personal Android test build: one generated maze, four ghosts, touch steering, pellets, power mode, damage, fruit, exit, and save/resume. This is a private draft release, not a public distribution."
