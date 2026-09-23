@@ -65,7 +65,7 @@ func _tr(en: String, de: String) -> String:
 	return de if language == "de" else en
 
 func _apply_settings() -> void:
-	Engine.max_fps = fps_mode
+	Engine.max_fps = 45 if battery_mode == "efficiency" else fps_mode
 	if is_instance_valid(sound):
 		sound.music_level = music_level
 		sound.effects_level = effects_level
@@ -513,7 +513,7 @@ func _label(value: String, position: Vector2, point_size: int, color: Color = Co
 	draw_string(font, position, value, align, width, point_size, color)
 
 func _glow(center: Vector2, radius: float, color: Color, strength: float = 1.0) -> void:
-	if reduced_effects:
+	if reduced_effects or battery_mode == "efficiency":
 		return
 	for i in range(3, 0, -1):
 		var layer := color
